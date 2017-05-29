@@ -4,7 +4,7 @@ Description : Lexer module for C like language
 Maintainer  : Michal Cwiertnia
 
 -}
-module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, integer, semi, whiteSpace, naturalOrFloat) where
+module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, integer, semi, whiteSpace, naturalOrFloat, stringLiteral) where
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
@@ -18,7 +18,7 @@ languageDef =
                Token.commentEnd         = "*/",
                Token.commentLine        = "//",
 
-               -- identifiers starts with letter and end with aphanumeric characters
+               -- identifiers starts with letter in lowercase and end with aphanumeric characters or _
                Token.identStart         = lower,
                Token.identLetter        = alphaNum <|> (char '_'),
                
@@ -29,12 +29,13 @@ languageDef =
                                             "while",
                                             "for",
                                             "return",
-                                            "do",
+                                            "print",
                                             "true",
-                                            "false"
+                                            "false",
+                                            "break",
+                                            "continue"
                                             ],
                 Token.reservedOpNames = [
-                                         "++", "--",
                                          "+", "-", "*", "/", "%", 
                                          "=",
                                          "<=", "<", ">=", ">", "==", "!=", 
@@ -72,3 +73,5 @@ semi       = Token.semi       lexer
 
 -- | WhiteSpace
 whiteSpace = Token.whiteSpace lexer
+
+stringLiteral = Token.stringLiteral lexer

@@ -5,44 +5,9 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import Lexer 
+import AST
 
--- | Data structure for expressions
-data Expr = Condition Expr Expr Expr    -- ^ This expression looks like: 
-           | BoolConst Bool             -- ^ Expression representing Boolean constant. Arguments: boolean value.
-           | StringConst String         -- ^ Expression representing String constant. Arguments: string value.
-           | IntConst Integer           -- ^ Expression representing Integer constant. Arguments: integer value.
-           | FloatConst Double          -- ^ Expression representing Double constatnt. Arguments: double value. 
-           | UnaryOp String Expr        -- ^ Expression representing unary operation. Arguments: operator, expression.
-           | BinaryOp String Expr Expr  -- ^ Expression representing binary operation. Arguments: operator, left expression, right expression. 
-           | Not Expr                   -- ^ Expression representing.
-           | Neg Expr                   -- ^ Expression representing negation. 
-           | FunCall String [Expr]      -- ^ Expression representing function call. Arguments: function's name, list of expression that will be passed as arguments.
-           deriving(Show)
-
--- | Data structure for types
-data Type = TAuto     -- ^ auto type
-           | TInt     -- ^ int type
-           | TFloat   -- ^ float type
-           | TBool    -- ^ bool type
-           | TString  -- ^ string type
-           | TVoid    -- ^ void type
-           deriving(Show)
-
--- | Data structure for function definition 
-data FunDef = FunDef Type String Type [(Type, String)] Stmt -- ^ Arguments for this constructor: function's type, function's name, list of arguments,
-                                                            -- function's body   
-            deriving(Show)
-
--- | Data structure for statements
-data Stmt = Seq [Stmt]                          -- ^ Sequence of statements
-          | Assign String Expr                  -- ^ Assignment statement
-          | If Expr Stmt Stmt                   -- ^ If statement. Arguments: 
-          | While Expr Stmt                     -- ^ While statement. Arguments: 
-          | Return Expr                         -- ^ Return statement. Arguments: expression which result will be returned
-          | Decl [(Type, String, Maybe Expr)]   -- ^ Declaration statement. Arguments: list of tuples which represents declarations. Single declaration 
-                                                -- includes: type, identifier, expression or nothing
-          | SNop                                -- ^ SNop represents empty statement
-          deriving (Show)
+-- TODO main porgram can be only set of functions now
 
 {-|
 == /Description:/
@@ -111,7 +76,7 @@ exprTerms = parens parseExpr
             return $ FunCall id list
             )
       )
-  <|> liftM StringConst identifier
+  <|> liftM StringConst stringLiteral
   <|> (do
         x <- naturalOrFloat
         case x of
@@ -207,10 +172,36 @@ Function parsing while statement.
 -}
 parseWhileStmt :: Parser Stmt
 parseWhileStmt = do 
-     reserved "while"
-     cond <- (parens parseExpr)
-     stmt <- parseStatement
-     return $ While cond stmt
+    reserved "while"
+    cond <- (parens parseExpr)
+    stmt <- parseStatement
+    return $ While cond stmt
+
+{-|
+== /Description:/
+Function parsing print statement.
+
+== /Arguments:/
+- parser   
+-}
+parsePrintStmt :: Parser Stmt
+parsePrintStmt = do
+    reserved "print"
+    expr <- parseExpr
+    semi
+    return $ Print expr 
+ 
+parseBreakStmt :: Parser Stmt
+parseBreakStmt = do
+    reserved "break"
+    semi
+    return $ Break
+
+parseContinueStmt :: Parser Stmt
+parseContinueStmt = do
+    reserved "continue"
+    semi
+    return $ Continue
 
 {-|
 == /Description:/
@@ -220,7 +211,10 @@ Function parsing single statement.
 - parser   
 -}
 parseStatement :: Parser Stmt
-parseStatement = parseIfStmt
+parseStatement = parseBreakStmt
+           <|> parseContinueStmt 
+           <|> parsePrintStmt
+           <|> parseIfStmt
            <|> parseWhileStmt
            <|> parseReturnStmt
            <|> sequenceOfStmt
@@ -244,12 +238,12 @@ Function parsing function's arguments.
 == /Arguments:/
 - parser   
 -}
-parseFunArgs :: Parser [(Type, String)]
+parseFunArgs :: Parser [Argument]
 parseFunArgs = do
   sepBy (do
       atype <- parseType
       name <- identifier
-      return (atype, name)
+      return $ Argument atype name
     )
     (reservedOp ",")
 
@@ -260,19 +254,20 @@ Function parsing types.
 == /Arguments:/   
 -}
 parseType = do 
-    x <- try ( do
-       c <- lower 
-       cs <- many (identLetter languageDef)
-       return (c:cs) 
-       <?> "identifier" )
-    whiteSpace
-    case x of
-      "int" -> return TInt
-      "float" -> return TFloat
-      "bool"  -> return TBool
-      "string"-> return TString
-      "void"  -> return TVoid
-      _  -> fail "Wrong type" 
+      x <- try (do
+        c <- lower 
+        cs <- many (identLetter languageDef)
+        return (c:cs) 
+        <?> "identifier" 
+               )
+      whiteSpace
+      case x of
+        "int" -> return TInt
+        "float" -> return TFloat
+        "bool"  -> return TBool
+        "string"-> return TString
+        "void"  -> return TVoid
+        _  -> fail "Wrong type" 
 
 
 {-|
@@ -287,12 +282,12 @@ parseFun = do
   ftype <- parseType
   name <- identifier
   args <- (parens parseFunArgs)
-  (rtype, stmt) <- (do
-                      stmt <- sequenceOfStmt
-                      return (TAuto, stmt)
-    )
+  (stmt) <- (do
+              stmt <- sequenceOfStmt
+              return (stmt)
+            )
 
-  return $ FunDef ftype name rtype args stmt
+  return $ FunDef ftype name args stmt
 
 {-|
 == /Description:/
