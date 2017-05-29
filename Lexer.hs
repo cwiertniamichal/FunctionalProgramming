@@ -1,9 +1,16 @@
+{-|
+Module      : Lexer
+Description : Lexer module for C like language
+Maintainer  : Michal Cwiertnia
+
+-}
 module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, integer, semi, whiteSpace, naturalOrFloat) where
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec
 
+-- | Language's tokens 
 languageDef = 
     emptyDef { 
                -- comments
@@ -36,31 +43,32 @@ languageDef =
                 Token.caseSensitive = True
               }         
 
--- create lexer
+-- | Lexer
 lexer = Token.makeTokenParser languageDef
 
--- parse identifier
+-- | Identifier
 identifier = Token.identifier lexer
 
--- parse reserved name
+-- | Reserved names
 reserved   = Token.reserved   lexer
 
--- parse operator
+-- | Reserved operators
 reservedOp = Token.reservedOp lexer
 
--- parse parens
+-- | Parenthesis - ()
 parens     = Token.parens     lexer
 
--- parse braces
+-- | Braces - {}
 braces = Token.braces lexer
 
--- parse integer
+-- | Integers
 integer    = Token.integer    lexer
 
+-- | Integers or Doubles
 naturalOrFloat = Token.naturalOrFloat lexer
 
--- parse semicolon
+-- | Semicolon
 semi       = Token.semi       lexer
 
--- parse whitespace
+-- | WhiteSpace
 whiteSpace = Token.whiteSpace lexer
