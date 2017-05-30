@@ -1,0 +1,5 @@
+int fun(int a){
+    //int b; <- tu
+    //b = 1; <- i tu
+    return 1;
+}

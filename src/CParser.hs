@@ -313,9 +313,10 @@ Function loading program's source code from file.
 == /Arguments:/ 
 - path to a file.
 -} 
+
 parseProgram :: String -> IO [FunDef]
 parseProgram file =
   do program  <- readFile file
      case parse parser "CParser" program of
        Left e  -> print e >> fail "Parse error"
-       Right r -> return r
+       Right r -> return r 
