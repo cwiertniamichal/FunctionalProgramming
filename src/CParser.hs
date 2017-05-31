@@ -86,9 +86,6 @@ exprTerms = parens parseExpr
   <|> (reserved "true" >> return (BoolConst True))
   <|> (reserved "false" >> return (BoolConst False))
 
-parseArray ttype = do
-  return ttype
-
 {-|
 == /Description:/
 Function parsing declaration statement.
@@ -104,15 +101,13 @@ parseDecl = do
         try  (
             do 
               name <- identifier
-              ttype <- parseArray dtype
               reservedOp "="
               expr <- parseExpr
-              return (ttype, name, Just expr)
+              return (dtype, name, Just expr)
           )
         <|> (do
             name <- identifier
-            ttype <- parseArray dtype
-            return (ttype, name, Nothing)
+            return (dtype, name, Nothing)
           )
       )
       (reservedOp ",")
@@ -128,11 +123,13 @@ Function parsing assign statement.
 -}
 parseAssignStmt :: Parser Stmt
 parseAssignStmt = do 
-     var  <- identifier
+  try ( do
+     var <- identifier
      reservedOp "="
      expr <- parseExpr
      semi
      return $ Assign var expr
+     )
 
 {-|
 == /Description:/
@@ -217,17 +214,16 @@ parseStatement = parseBreakStmt
            <|> parseIfStmt
            <|> parseWhileStmt
            <|> parseReturnStmt
-           <|> sequenceOfStmt
-           <|> parseDecl
            <|> parseAssignStmt
-
+           <|> parseDecl 
+           <|> parseSequenceOfStmt
 {-|
 == /Description:/
 Function parsing sequence of statements.
 
 == /Arguments:/   
 -}
-sequenceOfStmt = braces $ do
+parseSequenceOfStmt = braces $ do
        list <- (many parseStatement)
        return $ if length list == 0 then SNop else Seq list
 
@@ -255,9 +251,8 @@ Function parsing types.
 -}
 parseType = do 
       x <- try (do
-        c <- lower 
         cs <- many (identLetter languageDef)
-        return (c:cs) 
+        return (cs) 
         <?> "identifier" 
                )
       whiteSpace
@@ -277,17 +272,24 @@ Function parsing function definitions.
 == /Arguments:/
 - parser   
 -}
+
+{-
+    Example function definition:
+    void foo1(int a, float b){
+
+    }
+-}
 parseFun :: Parser FunDef
 parseFun = do 
   ftype <- parseType
   name <- identifier
   args <- (parens parseFunArgs)
-  (stmt) <- (do
-              stmt <- sequenceOfStmt
-              return (stmt)
+  (body) <- (do
+              body <- parseSequenceOfStmt
+              return (body)
             )
 
-  return $ FunDef ftype name args stmt
+  return $ FunDef ftype name args body
 
 {-|
 == /Description:/
@@ -300,11 +302,11 @@ parser :: Parser [FunDef]
 -- we have to deal with spaces before program's source code
 parser = whiteSpace >> many parseFun
 
-parseString :: String -> [FunDef]
-parseString str =
-  case parse parser "CParser" str of
-    Left e  -> error $ show e
-    Right r -> r
+-- parseString :: String -> [FunDef]
+-- parseString str =
+--   case parse parser "CParser" str of
+--     Left e  -> error $ show e
+--     Right r -> r
 
 {-| 
 == /Description:/
