@@ -1,9 +1,13 @@
 module Main where
 
-import CParser
+import CParser 
+import System.Environment
 
 main :: IO ()
 main = do 
-    ast <- parseProgram "files/trial1.txt" 
+    args <- getArgs
+    let file = if args == [] then "files/trial1.txt" else head args
+    putStrLn $ "Parsing " ++ file ++ "\n"
+    ast <- parseProgram file
     print $ "AST: " ++ show(ast)
 
