@@ -1,4 +1,4 @@
-module CParser where
+module CParser(parseProgram) where
 import System.IO
 import Control.Monad
 import Text.ParserCombinators.Parsec
