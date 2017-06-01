@@ -144,7 +144,7 @@ instance Show Stmt where
                                                 (printDecls dcls) 
 
 getExpr (Just x) = show x
-getExpr Nothing = "Nothing"
+getExpr Nothing = "Nothing\n"
 
 
 data Block = FunDefBlock Int FunDef 
