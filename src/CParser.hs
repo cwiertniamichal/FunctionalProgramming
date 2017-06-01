@@ -73,7 +73,7 @@ exprTerms indent = parens (parseExpr indent)
     try (
         do 
           id <- identifier
-          list <- (parens (sepBy ((parseExpr indent)) (reservedOp ",")))
+          list <- (parens (sepBy ((parseExpr (indent + 1))) (reservedOp ",")))
           return $ FunCall indent id list
         )    
       )

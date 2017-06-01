@@ -8,7 +8,6 @@ data Argument = Argument Int Type String deriving(Eq)
 instance Show Argument where
     show (Argument indent atype name) = (replicate (indent) '|') ++
                                         ("ARG ") ++
-                                        -- (show atype) ++ 
                                         (name ++ "\n") 
 
 -- | Data structure for expressions
@@ -19,8 +18,6 @@ data Expr = Condition {ind::Int, expr1::Expr, expr2::Expr, expr3::Expr}    -- ^ 
            | FloatConst {ind::Int, fVal::Double}          -- ^ Expression representing Double constatnt. Arguments: double value. 
            | UnaryOp {ind::Int, op::String, expr::Expr}        -- ^ Expression representing unary operation. Arguments: operator, expression.
            | BinaryOp {ind::Int, op::String, expr1::Expr,  expr2::Expr}  -- ^ Expression representing binary operation. Arguments: operator, left expression, right expression. 
-           | Not {expr::Expr}                   -- ^ Expression representing.
-           | Neg {expr::Expr}                   -- ^ Expression representing negation. 
            | FunCall {ind::Int, name::String, exprs::[Expr]}      -- ^ Expression representing function call. Arguments: function's name, list of expression that will be passed as arguments.
            | Variable {ind::Int, name::String}
            deriving(Eq)
@@ -30,26 +27,34 @@ changeIndent expr = case expr of
     IntConst indent val -> IntConst (indent + 1) val
     FloatConst indent val -> FloatConst (indent + 1) val
     StringConst indent val -> StringConst (indent + 1) val
-    UnaryOp indent op val -> UnaryOp (indent + 1) op val 
+    UnaryOp indent op val -> UnaryOp (indent + 1) op (changeIndent val) 
     BinaryOp indent op val1 val2 -> BinaryOp (indent + 1) op (changeIndent val1) (changeIndent val2)
     FunCall indent id args -> FunCall (indent + 1) id args
+    Variable indent name -> Variable (indent + 1) name
+    Condition indent e1 e2 e3 -> Condition (indent + 1) (changeIndent e1) (changeIndent e2) (changeIndent e3)
 
 instance Show Expr where
     show (BoolConst indent val) = (replicate indent '|') ++ (show val) ++ "\n"
     show (IntConst indent val) = (replicate indent '|') ++ (show val) ++ "\n"
     show (FloatConst indent val) = (replicate indent '|') ++ (show val) ++ "\n"
     show (StringConst indent val) = (replicate indent '|') ++ (show val) ++ "\n"
-    show (UnaryOp indent op val) = op ++ "\n" ++
-        ("| " ++ (show val) ++ "\n")
+    show (UnaryOp indent op val) = (replicate indent '|') ++ op ++ "\n" ++
+                                   (show (changeIndent val)) ++ "\n"
     show (BinaryOp indent op val1 val2) = (replicate indent '|') ++ op ++ "\n" ++
                                     (show (changeIndent val1)) ++
                                     (show (changeIndent val2))
-    show (FunCall indent id args) = (replicate indent '|') ++ 
-                                    id ++ "\n" ++
+    show (FunCall indent id args) = (replicate indent '|') ++ "FUNCALL\n" ++  
+                                    (replicate (indent + 1) '|') ++ id ++ "\n" ++
                                     printArgs args 
                                       where printArgs [] = ""
                                             printArgs (a:args) = (show a) ++ (printArgs args)
-    -- show (Condition e1 e2 e3) =   
+    show (Variable indent name) = (replicate indent '|') ++ name ++ "\n"
+    show (Condition indent e1 e2 e3) = (replicate indent '|') ++ "?\n" ++
+                                       (show (changeIndent e1)) ++
+                                       (replicate indent '|') ++ ":\n" ++
+                                       (show (changeIndent e2)) ++
+                                       (show (changeIndent e3))
+
 
 -- | Data structure for types
 data Type =  TInt Int    -- ^ int type
@@ -72,7 +77,7 @@ data FunDef = FunDef Int Type String [Argument] Stmt            -- ^ Arguments f
             deriving(Eq)
 
 instance Show FunDef where
-    show (FunDef indent ftype name args body) = ("\nFunDef \n") ++ 
+    show (FunDef indent ftype name args body) = ("FunDef \n") ++ 
                                                     ((replicate (indent + 1) '|') ++ name ++ "\n") ++
                                                     ((replicate (indent + 1) '|') ++ "RET " ++ show ftype) ++ 
                                                     (printArgs args
