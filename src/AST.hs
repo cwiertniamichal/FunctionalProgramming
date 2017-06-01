@@ -106,18 +106,18 @@ instance Show Stmt where
     show (Seq indent stmts) = printStmt stmts 
                               where printStmt [] = ""
                                     printStmt (s:stmts) = (show s) ++ (printStmt stmts)  
-    show (Assign indent id expr) = (replicate (indent) '|') ++ 
-                                   id ++ 
+    show (Assign indent id expr) = (replicate (indent) '|') ++ "=\n" ++
+                                   (replicate (indent + 1) '|') ++ id ++ 
                                    "\n" ++
-                                   (show $ expr) ++
-                                   "\n" 
+                                   (show $ expr)
     show (If indent expr stmt1 stmt2) = (replicate (indent) '|') ++
                                         "IF \n" ++
                                         (show expr) ++
                                         (show stmt1) ++ 
                                         case stmt2 of
                                             SNop -> ""
-                                            _ ->(show stmt2)
+                                            _ -> (replicate (indent) '|') ++ "ELSE \n" ++
+                                                 (show stmt2)
     show (While indent expr stmt ) = (replicate (indent) '|') ++
                                     "While \n" ++
                                     (show expr) ++ 
