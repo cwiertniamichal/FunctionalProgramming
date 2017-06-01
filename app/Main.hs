@@ -9,5 +9,5 @@ main = do
     let file = if args == [] then "files/trial1.txt" else head args
     putStrLn $ "Parsing " ++ file ++ "\n"
     ast <- parseProgram file
-    print $ "AST: " ++ show(ast)
+    putStr $ "AST: " ++ show(ast)
 

@@ -1,5 +1,30 @@
 int trial(){
     int b;
     b = 1 + 2;
-    return "asda";
+    //a = a ? 1 : 2;
+    if(1==2) {
+        a = 5;
+        //b = a + 3;
+    }
+    else{
+        a = 3;
+        //b = a + 3;
+    }
+}
+
+int main(int argc){
+    //trial();
+    a = true ? 1 : 2;
+    //b + a;
+    while(true){
+        a = 1;
+        b = 3;
+        //a = b;
+    }
+}
+
+int fun(int a){
+    int b;
+    b = 1;
+    return 1;
 }

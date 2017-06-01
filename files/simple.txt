@@ -1,0 +1,8 @@
+int a = 0;
+//int a = foo();
+/*
+int main(){
+    print "a";
+    //fun();
+}
+*/
