@@ -7,8 +7,6 @@ import Text.ParserCombinators.Parsec.Language
 import Lexer 
 import AST
 
--- TODO main porgram can be only set of functions now
-
 {-|
 == /Description:/
 Function parsing condition expression.
@@ -32,7 +30,7 @@ Function parsing single expression.
 -}
 parseExpr :: Int -> Parser Expr
 parseExpr indent = do
-  ex <- buildExpressionParser (exprOps indent) (exprTerms (indent)) <?> "expression"
+  ex <- buildExpressionParser (exprOps indent) (exprTerms indent) <?> "expression"
   try (parseCondition ex indent) <|> return ex
 
 {-|
@@ -61,8 +59,7 @@ exprOps indent = [
 
   [Infix (reservedOp "||" >> return (BinaryOp (indent ) "||")) AssocLeft],
   [Infix (reservedOp "&&" >> return (BinaryOp (indent ) "&&")) AssocLeft]
-
-          ]
+  ]
 
 {-|
 == /Description:/
@@ -70,13 +67,12 @@ exprOps indent = [
 -}
 exprTerms indent = parens (parseExpr indent)
   <|> (do
-    try (
-        do 
-          id <- identifier
-          list <- (parens (sepBy ((parseExpr (indent + 1))) (reservedOp ",")))
-          return $ FunCall indent id list
-        )    
-      )
+    try (do 
+      id <- identifier
+      list <- (parens $ sepBy (parseExpr $ indent + 1) (reservedOp ","))
+      return $ FunCall indent id list
+      )    
+    )
   <|>(do
         value <- stringLiteral
         return $ StringConst indent value
@@ -90,6 +86,7 @@ exprTerms indent = parens (parseExpr indent)
   <|> (reserved "true" >> return (BoolConst indent True))
   <|> (reserved "false" >> return (BoolConst indent False))
   <|> (identifier >>= \name ->  return (Variable indent name)) 
+
 {-|
 == /Description:/
 Function parsing declaration statement.
@@ -99,22 +96,20 @@ Function parsing declaration statement.
 -}
 parseDecl :: Int -> Parser Stmt
 parseDecl indent = do
-  dtype <- (parseType (indent + 1))
+  dtype <- (parseType $ indent + 1)
   list <- sepBy(
-      do
-        try  (
-            do 
-              name <- identifier
-              reservedOp "="
-              expr <- (parseExpr indent)
-              return (dtype, name, Just expr)
-          )
-        <|> (do
-            name <- identifier
-            return (dtype, name, Nothing)
-          )
-      )
-      (reservedOp ",")
+    do
+      try (do 
+        name <- identifier
+        reservedOp "="
+        expr <- (parseExpr indent)
+        return (dtype, name, Just expr)
+        )
+      <|> (do
+        name <- identifier
+        return (dtype, name, Nothing)
+        )
+      ) (reservedOp ",")
   semi
   return $ Decl indent list
  
@@ -127,13 +122,13 @@ Function parsing assign statement.
 -}
 parseAssignStmt :: Int -> Parser Stmt
 parseAssignStmt indent = do 
-  try ( do
-     var <- identifier
-     reservedOp "="
-     expr <- (parseExpr (indent + 1))
-     semi
-     return $ Assign indent var expr
-     )
+  try (do
+    var <- identifier
+    reservedOp "="
+    expr <- (parseExpr $ indent + 1)
+    semi
+    return $ Assign indent var expr
+    )
 
 {-|
 == /Description:/
@@ -145,7 +140,7 @@ Function parsing return statement.
 parseReturnStmt :: Int -> Parser Stmt
 parseReturnStmt indent = do
   reserved "return"
-  expr <- (parseExpr (indent + 1))
+  expr <- (parseExpr $ indent + 1)
   semi
   return $ Return indent expr
 
@@ -158,11 +153,11 @@ Function parsing if statement.
 -}
 parseIfStmt :: Int -> Parser Stmt
 parseIfStmt indent = do 
-     reserved "if"
-     cond  <- (parens (parseExpr (indent + 1)))
-     stmt1 <- (parseStatement (indent + 1))
-     stmt2 <- (try (reserved "else" >> (parseStatement (indent + 1))) <|> (do return SNop))
-     return $ If indent cond stmt1 stmt2
+  reserved "if"
+  cond  <- (parens $ parseExpr $ indent + 1)
+  stmt1 <- (parseStatement $ indent + 1)
+  stmt2 <- (try (reserved "else" >> (parseStatement $ indent + 1)) <|> (do return SNop))
+  return $ If indent cond stmt1 stmt2
  
 {-|
 == /Description:/
@@ -173,10 +168,10 @@ Function parsing while statement.
 -}
 parseWhileStmt :: Int -> Parser Stmt
 parseWhileStmt indent = do 
-    reserved "while"
-    cond <- (parens (parseExpr (indent + 1)))
-    stmt <- (parseStatement (indent + 1))
-    return $ While indent cond stmt
+  reserved "while"
+  cond <- (parens $ parseExpr $ indent + 1)
+  stmt <- (parseStatement $ indent + 1)
+  return $ While indent cond stmt
 
 {-|
 == /Description:/
@@ -187,16 +182,16 @@ Function parsing print statement.
 -}
 parsePrintStmt :: Int -> Parser Stmt
 parsePrintStmt indent = do
-    reserved "print"
-    expr <- (parseExpr indent)
-    semi
-    return $ Print indent expr 
+  reserved "print"
+  expr <- parseExpr indent
+  semi
+  return $ Print indent expr 
  
 parseBreakStmt :: Int ->  Parser Stmt
 parseBreakStmt indent = do
-    reserved "break"
-    semi
-    return $ Break indent
+  reserved "break"
+  semi
+  return $ Break indent
 
 parseContinueStmt :: Int -> Parser Stmt
 parseContinueStmt indent = do
@@ -204,15 +199,15 @@ parseContinueStmt indent = do
     semi
     return $ Continue indent
 
+parseSingleExpr :: Int -> Parser Stmt
 parseSingleExpr indent = do
-  try ( do
+  try (do
     expr <- (parseExpr indent)
-    --id <- identifier
-    --list <- (parens (sepBy (parseExpr) (reservedOp ",")))
     semi
     return $ SExpr indent expr
     )
 
+parseEmptyStmt :: Parser Stmt
 parseEmptyStmt = do
   semi
   return SNop
@@ -224,17 +219,17 @@ Function parsing single statement.
 - parser   
 -}
 parseStatement :: Int -> Parser Stmt
-parseStatement indent = (parseBreakStmt indent)
-           <|> (parseContinueStmt indent) 
-           <|> (parsePrintStmt indent)
-           <|> (parseIfStmt indent)
-           <|> (parseWhileStmt indent)
-           <|> (parseReturnStmt indent)
-           <|> (parseAssignStmt indent)
-           <|> (parseSingleExpr indent)
-           <|> (parseDecl indent) 
-           <|> (parseSequenceOfStmt indent)
-           <|> parseEmptyStmt 
+parseStatement indent = parseBreakStmt indent
+  <|> parseContinueStmt indent 
+  <|> parsePrintStmt indent
+  <|> parseIfStmt indent
+  <|> parseWhileStmt indent
+  <|> parseReturnStmt indent
+  <|> parseAssignStmt indent
+  <|> parseSingleExpr indent
+  <|> parseDecl indent
+  <|> parseSequenceOfStmt indent
+  <|> parseEmptyStmt 
 {-|
 == /Description:/
 Function parsing sequence of statements.
@@ -242,8 +237,8 @@ Function parsing sequence of statements.
 == /Arguments:/   
 -}
 parseSequenceOfStmt indent = braces $ do
-       list <- (many (parseStatement indent))
-       return $ if length list == 0 then SNop else Seq indent list
+  list <- (many $ parseStatement indent)
+  return $ if length list == 0 then SNop else Seq indent list
 {-|
 == /Description:/
 Function parsing function's arguments.
@@ -254,11 +249,10 @@ Function parsing function's arguments.
 parseFunArgs :: Int -> Parser [Argument]
 parseFunArgs indent = do
   sepBy (do
-      atype <- (parseType indent)
-      name <- identifier
-      return $ Argument indent atype name
-    )
-    (reservedOp ",")
+    atype <- (parseType indent)
+    name <- identifier
+    return $ Argument indent atype name
+    ) (reservedOp ",")
 
 {-|
 == /Description:/
@@ -266,20 +260,21 @@ Function parsing types.
 
 == /Arguments:/   
 -}
+parseType :: Int -> Parser Type
 parseType indent = do 
-      x <- try (do
-        cs <- many (identLetter languageDef)
-        return (cs) 
-        <?> "identifier" 
-               )
-      whiteSpace
-      case x of
-        "int" -> return $ TInt indent
-        "float" -> return $ TFloat indent 
-        "bool"  -> return $ TBool indent 
-        "string"-> return $ TString indent 
-        "void"  -> return $ TVoid indent 
-        _  -> fail "Wrong type" 
+  x <- try (do
+    cs <- many $ identLetter languageDef
+    return cs 
+    <?> "identifier" 
+    )
+  whiteSpace
+  case x of
+    "int" -> return $ TInt indent
+    "float" -> return $ TFloat indent 
+    "bool"  -> return $ TBool indent 
+    "string"-> return $ TString indent 
+    "void"  -> return $ TVoid indent 
+    _  -> fail "Wrong type" 
 
 
 {-|
@@ -298,26 +293,26 @@ Function parsing function definitions.
 -}
 parseFun :: Int -> Parser FunDef
 parseFun indent = do 
-  ftype <- (parseType (indent + 1))
+  ftype <- parseType $ indent + 1
   name <- identifier
-  args <- (parens (parseFunArgs (indent + 1)))
-  (body) <- (do
-              body <- (parseSequenceOfStmt (indent + 1))
-              return (body)
-            )
+  args <- (parens $ parseFunArgs $ indent + 1)
+  body <- (do
+    body <- (parseSequenceOfStmt $ indent + 1)
+    return body
+    )
 
   return $ FunDef indent ftype name args body
 
+parseBlock :: Int -> Parser Block
 parseBlock indent = do
-        try  (
-            do 
-              fun <- (parseFun indent)
-              return $ FunDefBlock indent fun  
-          )
-        <|> (do
-            stmt <- (parseStatement indent)
-            return $ StmtBlock indent stmt
-          )
+  try (do 
+    fun <- parseFun indent
+    return $ FunDefBlock indent fun  
+    )
+  <|> (do
+    stmt <- parseStatement indent
+    return $ StmtBlock indent stmt
+    )
       
 {-|
 == /Description:/
@@ -332,13 +327,6 @@ parser = do
           whiteSpace
           blocks <- many $ parseBlock 0
           return $ Program blocks
-
-
--- parseString :: String -> [FunDef]
--- parseString str =
---   case parse parser "CParser" str of
---     Left e  -> error $ show e
---     Right r -> r
 
 {-| 
 == /Description:/
