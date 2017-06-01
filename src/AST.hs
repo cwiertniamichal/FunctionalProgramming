@@ -1,4 +1,4 @@
-module AST (Argument(..), Expr(..), Type(..), FunDef(..), Stmt(..)) where
+module AST (Argument(..), Expr(..), Type(..), FunDef(..), Stmt(..), Block(..)) where
 
 indent = 0
 -- TODO: HOW TO PRINT AST???
@@ -95,3 +95,7 @@ data Stmt = Seq [Stmt]                          -- ^ Sequence of statements
 --     show Break = "Break \n"
 --     show Continue = "Continue \n"
 --     show SNop = ""   
+
+data Block = FunDefBlock FunDef 
+           | DeclBlock Stmt
+           deriving(Show)

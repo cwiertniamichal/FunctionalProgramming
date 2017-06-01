@@ -291,6 +291,17 @@ parseFun = do
 
   return $ FunDef ftype name args body
 
+parseBlock = do
+        try  (
+            do 
+              fun <- parseFun
+              return $ FunDefBlock fun 
+          )
+        <|> (do
+            decl <- parseDecl
+            return $ DeclBlock decl
+          )
+      
 {-|
 == /Description:/
 Function that starts actual parsing. It gets rid of preceding whitespaces.
@@ -298,9 +309,11 @@ Function that starts actual parsing. It gets rid of preceding whitespaces.
 == /Arguments:/
 - parser   
 -}
-parser :: Parser [FunDef]
+parser :: Parser [Block]
 -- we have to deal with spaces before program's source code
-parser = whiteSpace >> many parseFun
+parser = do 
+          whiteSpace
+          many parseBlock
 
 -- parseString :: String -> [FunDef]
 -- parseString str =
@@ -316,7 +329,7 @@ Function loading program's source code from file.
 - path to a file.
 -} 
 
-parseProgram :: String -> IO [FunDef]
+parseProgram :: String -> IO [Block]
 parseProgram file =
   do program  <- readFile file
      case parse parser "CParser" program of
