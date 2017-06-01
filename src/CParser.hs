@@ -70,11 +70,12 @@ exprOps = [
 -}
 exprTerms = parens parseExpr
   <|> (do
-        id <- identifier
-        try ( do
-            list <- (parens $ sepBy parseExpr $ reservedOp ",")
-            return $ FunCall id list
-            )
+    try (
+        do 
+          id <- identifier
+          list <- (parens (sepBy (parseExpr) (reservedOp ",")))
+          return $ FunCall id list
+        )    
       )
   <|> liftM StringConst stringLiteral
   <|> (do
@@ -85,7 +86,7 @@ exprTerms = parens parseExpr
       )
   <|> (reserved "true" >> return (BoolConst True))
   <|> (reserved "false" >> return (BoolConst False))
-
+  <|> (identifier >>= \name ->  return (Variable name)) 
 {-|
 == /Description:/
 Function parsing declaration statement.
@@ -200,6 +201,18 @@ parseContinueStmt = do
     semi
     return $ Continue
 
+parseSingleExpr = do
+  try ( do
+    expr <- parseExpr
+    --id <- identifier
+    --list <- (parens (sepBy (parseExpr) (reservedOp ",")))
+    semi
+    return $ SExpr $ expr
+    )
+
+parseEmptyStmt = do
+  semi
+  return SNop
 {-|
 == /Description:/
 Function parsing single statement.
@@ -215,8 +228,10 @@ parseStatement = parseBreakStmt
            <|> parseWhileStmt
            <|> parseReturnStmt
            <|> parseAssignStmt
+           <|> parseSingleExpr
            <|> parseDecl 
            <|> parseSequenceOfStmt
+           <|> parseEmptyStmt
 {-|
 == /Description:/
 Function parsing sequence of statements.
@@ -298,8 +313,8 @@ parseBlock = do
               return $ FunDefBlock fun 
           )
         <|> (do
-            decl <- parseDecl
-            return $ DeclBlock decl
+            stmt <- parseStatement
+            return $ StmtBlock stmt
           )
       
 {-|

@@ -3,7 +3,7 @@ module AST (Argument(..), Expr(..), Type(..), FunDef(..), Stmt(..), Block(..)) w
 indent = 0
 -- TODO: HOW TO PRINT AST???
 -- | Data struvture for function's arguments
-data Argument = Argument Type String deriving(Show)
+data Argument = Argument Type String deriving(Show, Eq)
 
 -- instance Show Argument where
 --     show (Argument ttype id) = (show ttype) ++ " " ++ id 
@@ -19,7 +19,8 @@ data Expr = Condition Expr Expr Expr    -- ^ This expression looks like:
            | Not Expr                   -- ^ Expression representing.
            | Neg Expr                   -- ^ Expression representing negation. 
            | FunCall String [Expr]      -- ^ Expression representing function call. Arguments: function's name, list of expression that will be passed as arguments.
-           deriving(Show)
+           | Variable String
+           deriving(Show, Eq)
 
 -- instance Show Expr where
 --     show (BoolConst val) = (show val) ++ "\n"
@@ -43,7 +44,7 @@ data Type =  TInt     -- ^ int type
            | TBool    -- ^ bool type
            | TString  -- ^ string type
            | TVoid    -- ^ void type
-          deriving(Show)
+          deriving(Show, Eq)
 -- instance Show Type where
 --     show TInt = "int"
 --     show TFloat = "float"
@@ -54,7 +55,7 @@ data Type =  TInt     -- ^ int type
 -- | Data structure for function definition 
 data FunDef = FunDef Type String [Argument] Stmt            -- ^ Arguments for this constructor: function's type, function's name, list of arguments,
                                                             -- function's body   
-            deriving(Show)
+            deriving(Show, Eq)
 -- instance Show FunDef where
 --     show (FunDef ttype name args body) = 
 --         "\nFunDef \n" ++ 
@@ -75,7 +76,8 @@ data Stmt = Seq [Stmt]                          -- ^ Sequence of statements
           | Print Expr
           | Break
           | Continue
-          deriving (Show)
+          | SExpr Expr
+          deriving (Show, Eq)
 
 -- instance Show Stmt where
 --     show (Seq (x:xs)) = (show x) ++ (show xs)  
@@ -97,5 +99,5 @@ data Stmt = Seq [Stmt]                          -- ^ Sequence of statements
 --     show SNop = ""   
 
 data Block = FunDefBlock FunDef 
-           | DeclBlock Stmt
-           deriving(Show)
+           | StmtBlock Stmt
+           deriving(Show, Eq)
