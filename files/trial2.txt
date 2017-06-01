@@ -1,0 +1,5 @@
+int trial(){
+    int b;
+    b = 1 + 2;
+    return "asda";
+}

@@ -1,5 +1,5 @@
 int fun(int a){
-    //int b;
-    //b = 1;
+    int b;
+    b = 1;
     return 1;
 }
