@@ -1,4 +1,6 @@
-module AST (Argument(..), Expr(..), Type(..), FunDef(..), Stmt(..), Block(..), Program(..)) where
+module AST (Argument(..), Expr(..), Type(..), FunDef(..), Stmt(..), Block(..), Program(..), LambdaArg(..)) where
+
+data LambdaArg = LambdaArg String deriving (Show, Eq)
 
 -- | Data struvture for function's arguments
 data Argument = Argument Int Type String 
@@ -18,7 +20,9 @@ data Expr = Condition Int Expr Expr Expr |    -- ^ This expression looks like:
             UnaryOp Int String Expr |        -- ^ Expression representing unary operation. Arguments: operator, expression.
             BinaryOp Int String Expr Expr |  -- ^ Expression representing binary operation. Arguments: operator, left expression, right expression. 
             FunCall Int String [Expr] |      -- ^ Expression representing function call. Arguments: function's name, list of expression that will be passed as arguments.
-            Variable Int String
+            Variable Int String |
+            PythonLambda Int [LambdaArg] Expr |
+            HaskellLambda Int [LambdaArg] Expr 
             deriving(Eq)
 
 changeIndent expr = case expr of
@@ -34,7 +38,24 @@ changeIndent expr = case expr of
   Variable indent name -> Variable (indent + 1) name
   Condition indent e1 e2 e3 -> Condition (indent + 1) (changeIndent e1) (changeIndent e2) (changeIndent e3)
 
+
+printLambdaArgs _ [] = ""
+printLambdaArgs indent (a:as) = 
+  replicate indent '|' ++ show a ++ "\n" ++ printLambdaArgs indent as
+
 instance Show Expr where
+  show (PythonLambda indent lambda_args expr) = 
+    replicate indent '|'
+     ++ "Python lambda\n" 
+     ++ printLambdaArgs (indent + 2) lambda_args
+     ++ show expr
+
+  show (HaskellLambda indent lambda_args expr) = 
+    replicate indent '|'
+     ++ "Haskell lambda\n" 
+     ++ printLambdaArgs (indent + 2) lambda_args
+     ++ show expr
+
   show (BoolConst indent val) = replicate indent '|' ++ show val ++ "\n"
   
   show (IntConst indent val) = replicate indent '|' ++ show val ++ "\n"

@@ -9,6 +9,50 @@ import AST
 
 {-|
 == /Description:/
+Function parsing single expression.
+
+== /Arguments:/
+- parser   
+-}
+
+
+parsePythonLambda :: Int -> Parser Expr 
+parsePythonLambda indent = do 
+  reservedOp "lambda"
+  args <- parseLambdaArgs
+  reservedOp ":"
+  expr <- (parseExpr (indent + 1))
+  return $ PythonLambda indent args expr
+
+parseHaskellLambda :: Int -> Parser Expr 
+parseHaskellLambda indent = do 
+  reservedOp "\\"
+  args <- parseLambdaArgs
+  reservedOp "->"
+  expr <- (parseExpr (indent + 1))
+  return $ HaskellLambda indent args expr
+
+parseExpr :: Int -> Parser Expr
+parseExpr indent = do
+  try (parsePythonLambda indent) <|> 
+    try (parseHaskellLambda indent) <|>
+      do
+        ex <- buildExpressionParser (exprOps indent) (exprTerms indent) <?> "expression"
+        try (parseCondition ex indent) <|> return ex
+
+
+parseLambdaArgs :: Parser [LambdaArg]
+parseLambdaArgs = do 
+  sepBy (
+      do 
+        name <- identifier
+        return $ LambdaArg name
+    )
+    (reservedOp ",")
+
+
+{-|
+== /Description:/
 Function parsing condition expression.
 
 == /Arguments:/
@@ -20,18 +64,6 @@ parseCondition ex indent = do
   reservedOp ":"
   b <- (parseExpr indent)
   return $ Condition indent ex a b
-
-{-|
-== /Description:/
-Function parsing single expression.
-
-== /Arguments:/
-- parser   
--}
-parseExpr :: Int -> Parser Expr
-parseExpr indent = do
-  ex <- buildExpressionParser (exprOps indent) (exprTerms indent) <?> "expression"
-  try (parseCondition ex indent) <|> return ex
 
 {-|
 == /Description:/

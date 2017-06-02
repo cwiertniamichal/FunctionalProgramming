@@ -2,33 +2,37 @@ module SpecHU (runHU) where
 
 import Test.HUnit
 
-import Lib(foo)
 import CParser
 import AST 
-
-test1 = TestCase (assertEqual "for (foo 3, has to pass)," (1,2) (foo 3))
---test_failed = TestCase (assertEqual "for (foo 3, has to fail)," (1,3) (foo 3))
---test_2_failed = TestCase (assertEqual "for (foo 4) has to fail" (1,3) (foo 4)) 
 
 test_simple = TestCase (
         do
             ast <- parseProgram "files/simple.txt"
             assertEqual 
                 "Simple test, should pass" 
-                "[StmtBlock (Decl [(TInt,\"a\",Just (IntConst 0))])]" 
+                "DECL\n|=\n||a\n||0\n" 
                 (show ast)
         )
 {-
-test_trial = TestCase (
+test_trial2 = TestCase (
+            do 
+                ast <- (parseProgram "files/trial2.txt")
+                assertEqual
+                    
+                    "Simple"
+                    
+                    [FunDefBlock (FunDef TInt "trial" [] (Seq [Decl [(TInt,"b",Nothing)],Assign "b" (BinaryOp "+" (IntConst 1) (IntConst 2)),
+                    If (BinaryOp "==" (IntConst 1) (IntConst 2)) (Seq [Assign "a" (IntConst 5)]) (Seq [Assign "a" (IntConst 3)])])),FunDefBlock (FunDef TInt "main"
+                    [Argument TInt "argc"] (Seq [Assign "a" (Condition (BoolConst True) (IntConst 1) (IntConst 2)),While (BoolConst True) (Seq [Assign "a"
+                    (IntConst 1),Assign "b" (IntConst 3)])])),FunDefBlock (FunDef TInt "fun" [Argument TInt "a"] (Seq [Decl [(TInt,"b",Nothing)],Assign "b"
+                    (IntConst 1),Return (IntConst 1)]))]
 
-            assertEqual
-                "Simple"
-                [FunDefBlock (FunDef TInt "fun" [Argument TInt "a"] (Seq [Decl [(TInt,"b",Nothing)],Assign "b" (IntConst 1),Return (IntConst 1)]))]
-                (parseProgram "files/trial1.txt")
+                    ast
+                
     )
--}
 
-test_trial = TestCase (
+
+test_trial1 = TestCase (
         do 
             ast <- (parseProgram "files/trial1.txt")
             assertEqual 
@@ -37,20 +41,12 @@ test_trial = TestCase (
                 ast
     )
 
-{-
-test2 = TestCase (do (x,y) <- partA 3
-                     assertEqual "for the first result of partA," 5 x
-                     b <- partB y
-                     assertBool ("(partB " ++ show y ++ ") failed") b)
 -}
-
 tests = 
     TestList[
-        TestLabel "test1" test1
-        , TestLabel "test_simple" test_simple
-        , TestLabel "test_trial" test_trial
-        --,TestLabel "test_failed" test_failed,
-        --,TestLabel "test_2_failed" test_2_failed
+        TestLabel "test_simple" test_simple
+        --, TestLabel "test_trial1" test_trial1
+        --, TestLabel "test_trial2" test_trial2
     ]
 
 

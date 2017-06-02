@@ -1,0 +1,4 @@
+a = true ? 1 : 2;
+y = lambda a, b : a * b;
+y1 = lambda a,b : a + b;
+y2 = \x, y -> x + y;
