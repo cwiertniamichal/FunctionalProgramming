@@ -42,23 +42,23 @@ exprOps indent = [
 
   [Prefix (reservedOp "!" >> return (UnaryOp indent "!"))],
 
-  [Infix (reservedOp "*" >> return (BinaryOp (indent ) "*")) AssocLeft],
-  [Infix (reservedOp "/" >> return (BinaryOp (indent ) "/")) AssocLeft],
-  [Infix (reservedOp "%" >> return (BinaryOp (indent ) "%")) AssocLeft],
+  [Infix (reservedOp "*" >> return (BinaryOp indent "*")) AssocLeft],
+  [Infix (reservedOp "/" >> return (BinaryOp indent "/")) AssocLeft],
+  [Infix (reservedOp "%" >> return (BinaryOp indent "%")) AssocLeft],
 
-  [Infix (reservedOp "+" >> return (BinaryOp (indent) "+")) AssocLeft],
-  [Infix (reservedOp "-" >> return (BinaryOp (indent ) "-")) AssocLeft],
+  [Infix (reservedOp "+" >> return (BinaryOp indent "+")) AssocLeft],
+  [Infix (reservedOp "-" >> return (BinaryOp indent "-")) AssocLeft],
 
-  [Infix (reservedOp ">=" >> return (BinaryOp (indent ) ">=")) AssocLeft],
-  [Infix (reservedOp "<=" >> return (BinaryOp (indent ) "<=")) AssocLeft],
-  [Infix (reservedOp "<" >> return (BinaryOp (indent ) "<")) AssocLeft],
-  [Infix (reservedOp ">" >> return (BinaryOp (indent ) ">")) AssocLeft],
+  [Infix (reservedOp ">=" >> return (BinaryOp indent ">=")) AssocLeft],
+  [Infix (reservedOp "<=" >> return (BinaryOp indent "<=")) AssocLeft],
+  [Infix (reservedOp "<" >> return (BinaryOp indent "<")) AssocLeft],
+  [Infix (reservedOp ">" >> return (BinaryOp indent ">")) AssocLeft],
 
-  [Infix (reservedOp "==" >> return (BinaryOp (indent ) "==")) AssocLeft],
-  [Infix (reservedOp "!=" >> return (BinaryOp (indent ) "!=")) AssocLeft],
+  [Infix (reservedOp "==" >> return (BinaryOp indent "==")) AssocLeft],
+  [Infix (reservedOp "!=" >> return (BinaryOp indent "!=")) AssocLeft],
 
-  [Infix (reservedOp "||" >> return (BinaryOp (indent ) "||")) AssocLeft],
-  [Infix (reservedOp "&&" >> return (BinaryOp (indent ) "&&")) AssocLeft]
+  [Infix (reservedOp "||" >> return (BinaryOp indent "||")) AssocLeft],
+  [Infix (reservedOp "&&" >> return (BinaryOp indent "&&")) AssocLeft]
   ]
 
 {-|
@@ -69,8 +69,8 @@ exprTerms indent = parens (parseExpr indent)
   <|> (do
     try (do 
       id <- identifier
-      list <- (parens $ sepBy (parseExpr $ indent + 1) (reservedOp ","))
-      return $ FunCall indent id list
+      args <- (parens $ sepBy (parseExpr $ indent) (reservedOp ","))
+      return $ FunCall indent id args
       )    
     )
   <|>(do
@@ -102,7 +102,7 @@ parseDecl indent = do
       try (do 
         name <- identifier
         reservedOp "="
-        expr <- (parseExpr indent)
+        expr <- (parseExpr $ 0)
         return (dtype, name, Just expr)
         )
       <|> (do
@@ -183,7 +183,7 @@ Function parsing print statement.
 parsePrintStmt :: Int -> Parser Stmt
 parsePrintStmt indent = do
   reserved "print"
-  expr <- parseExpr indent
+  expr <- parseExpr $ indent + 1
   semi
   return $ Print indent expr 
  

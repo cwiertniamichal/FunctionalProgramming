@@ -28,7 +28,9 @@ changeIndent expr = case expr of
   StringConst indent val -> StringConst (indent + 1) val
   UnaryOp indent op val -> UnaryOp (indent + 1) op (changeIndent val) 
   BinaryOp indent op val1 val2 -> BinaryOp (indent + 1) op (changeIndent val1) (changeIndent val2)
-  FunCall indent id args -> FunCall (indent + 1) id args
+  FunCall indent id args -> FunCall (indent + 1) id (changeArgsIndent args)
+    where changeArgsIndent [] = []
+          changeArgsIndent (a:args) = changeIndent a : changeArgsIndent args
   Variable indent name -> Variable (indent + 1) name
   Condition indent e1 e2 e3 -> Condition (indent + 1) (changeIndent e1) (changeIndent e2) (changeIndent e3)
 
@@ -51,7 +53,7 @@ instance Show Expr where
     replicate (indent + 1) '|' ++ id ++ "\n" ++
     printArgs args 
     where printArgs [] = ""
-          printArgs (a:args) = show a ++ printArgs args
+          printArgs (a:args) = show (changeIndent a) ++ printArgs args
   
   show (Variable indent name) = replicate indent '|' ++ name ++ "\n"
   
@@ -155,7 +157,7 @@ instance Show Stmt where
                     replicate (indent + 2) '|' ++ name ++ "\n" ++
                     replicate (indent + 2) '|' ++ 
                     case expr of
-                      (Just x) -> show x
+                      (Just x) -> show x    
                       _        -> "Nothing\n"
                     ++ printDecls dcls 
 
