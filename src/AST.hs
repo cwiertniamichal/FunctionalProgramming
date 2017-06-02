@@ -192,7 +192,7 @@ instance Show Block where
   show (StmtBlock _ stmt ) = show stmt
 
 
-data Program = Program [Block]
+data Program = Program [Block] deriving Eq
 
 instance Show Program where
   show (Program bs) = printBlocks bs

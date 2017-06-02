@@ -1,0 +1,5 @@
+print "a";
+break;
+continue;
+return "a";
+return 1;

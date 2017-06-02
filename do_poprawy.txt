@@ -1,8 +1,0 @@
-w ifie przechodzi cos takiego:
-if (1==2) {},
-if(true){} itp.
-ale juz 
-if (a == 1) nie przechodzi
-
-Edit: wgl po prawej stronie nie może byc żadnych etykiet na ten moment, tylko same literaly
-tzn. a = b; if(a == b)...; if(a >c)...;  nie przechodzą

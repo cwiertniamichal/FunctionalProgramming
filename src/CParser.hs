@@ -372,5 +372,5 @@ parseProgram :: String -> IO Program
 parseProgram file =
   do program  <- readFile file
      case parse parser "CParser" program of
-       Left e  -> print e >> fail "Parse error"
+       Left e  -> print e >> return (Program [])-- >> fail "Parse error"
        Right r -> return r 
