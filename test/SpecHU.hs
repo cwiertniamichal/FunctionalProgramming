@@ -18,7 +18,7 @@ test_simple =
                     [
                         StmtBlock 0 
                         (
-                            Decl 0 [ (TInt 1, "a", Just $ IntConst 0 0) ]
+                            Decl 0 [ (TInt 0, "a", Just $ IntConst 0 0) ]
                         )
                     ]
                 )
@@ -38,15 +38,15 @@ test_fundef =
                         FunDefBlock 0 (
                             FunDef 
                             0 
-                            ( TInt 1 ) 
+                            ( TInt 0 ) 
                             "main" 
                             [
-                                Argument 1 ( TInt 1 ) "argc", 
-                                Argument 1 ( TInt 1 ) "argv",
-                                Argument 1 ( TFloat 1 ) "a"
+                                Argument 0 ( TInt 0 ) "argc", 
+                                Argument 0 ( TInt 0 ) "argv",
+                                Argument 0 ( TFloat 0 ) "a"
                             ] 
                             (
-                                Seq 1 [ Return 1 $ IntConst 2 0 ]
+                                Seq 0 [ Return 0 $ IntConst 0 0 ]
                             )
                         )
                     ]
@@ -69,9 +69,9 @@ test_lambda_py =
                             0 
                             "y" 
                             (
-                                PythonLambda 1 
+                                PythonLambda 0 
                                 [ LambdaArg "a", LambdaArg "b" ] 
-                                ( BinaryOp 2 "*" (Variable 2 "a") (Variable 2 "b") ) 
+                                ( BinaryOp 0 "*" (Variable 0 "a") (Variable 0 "b") ) 
                             ) 
                         ) 
                     ] 
@@ -93,12 +93,12 @@ test_lambda_hs =
                         StmtBlock 0 (
                             Assign 0 "y" 
                             (
-                                HaskellLambda 1 
+                                HaskellLambda 0 
                                 [ LambdaArg "a", LambdaArg "b" ] 
                                 (
-                                    BinaryOp 2 "+" 
-                                    (Variable 2 "a") 
-                                    (Variable 2 "b") 
+                                    BinaryOp 0 "+" 
+                                    (Variable 0 "a") 
+                                    (Variable 0 "b") 
                                 ) 
                             ) 
                         ) 
@@ -114,7 +114,7 @@ test_termary =
             ast <- (parseProgram "files/testfiles/termary.txt")
             assertEqual
                 "Termary"
-                (Program [StmtBlock 0 (Assign 0 "a" (Condition 1 (BoolConst 1 True) (IntConst 1 1) (IntConst 1 2) )) ])
+                (Program [StmtBlock 0 (Assign 0 "a" (Condition 0 (BoolConst 0 True) (IntConst 0 1) (IntConst 0 2) )) ])
                 ast
         )
 
@@ -130,7 +130,7 @@ test_while =
                     [
                         StmtBlock 0 
                         (
-                            While 0 ( BoolConst 1 True )  ( Seq 1 [Assign 1 "a" $ IntConst 2 1] )
+                            While 0 ( BoolConst 0 True )  ( Seq 1 [Assign 0 "a" $ IntConst 0 1] )
                         )
                     ]
                 )
@@ -149,7 +149,7 @@ test_if_else =
                     [
                         StmtBlock 0
                         (
-                            If 0 (BoolConst 1 True) (Seq 1 [Assign 1 "a" $ IntConst 2 1]) (Seq 1 [Assign 1 "a" $ IntConst 2 0])
+                            If 0 (BoolConst 0 True) (Seq 0 [Assign 0 "a" $ IntConst 0 1]) (Seq 0 [Assign 0 "a" $ IntConst 0 0])
                         ) 
                     ]
                 )
@@ -168,7 +168,7 @@ test_instructions =
                     [
                         StmtBlock 0 
                         (
-                            Print 0 (StringConst 1 "a")
+                            Print 0 (StringConst 0 "a")
                         ),
 
                         StmtBlock 0
@@ -183,12 +183,12 @@ test_instructions =
 
                         StmtBlock 0
                         (
-                            Return 0 (StringConst 1 "a")
+                            Return 0 (StringConst 0 "a")
                         ),
 
                         StmtBlock 0
                         (
-                            Return 0 (IntConst 1 1)
+                            Return 0 (IntConst 0 1)
                         )
 
                         
@@ -211,29 +211,29 @@ test_declarations =
                         StmtBlock 0 (
                             Decl 0 
                             [
-                                (TBool 1, "a", Just $ BoolConst 0 True)
+                                (TBool 0, "a", Just $ BoolConst 0 True)
                             ]
                         ),
                         StmtBlock 0 (
                             Decl 0 
                             [
-                                (TInt 1, "b", Just $ BinaryOp 0 "+" (IntConst 0 1) (IntConst 0 2))
+                                (TInt 0, "b", Just $ BinaryOp 0 "+" (IntConst 0 1) (IntConst 0 2))
                             ]
                         ),
                         StmtBlock 0 (
                             Decl 0 [
-                                (TFloat 1, "c", Just $ FloatConst 0 3.0),
-                                (TFloat 1, "c", Just $ FloatConst 0 3.3)
+                                (TFloat 0, "c", Just $ FloatConst 0 3.0),
+                                (TFloat 0, "c", Just $ FloatConst 0 3.3)
                             ]
                         ),
                         StmtBlock 0 (
                             Decl 0 [
-                                (TString 1, "d", Just $ StringConst 0 "Hello world")
+                                (TString 0, "d", Just $ StringConst 0 "Hello world")
                             ]
                         ),
                         StmtBlock 0 (
                             Decl 0 [
-                                (TString 1, "e", Just $ FunCall 0 "main" [IntConst 0 1])
+                                (TString 0, "e", Just $ FunCall 0 "main" [IntConst 0 1])
                             ]
                         )
                     ]

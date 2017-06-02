@@ -32,7 +32,7 @@ test-suite Parser-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             SpecMain.hs
-  other-modules:     SpecHU, SpecQC, SpecPrintHU
+  other-modules:     SpecHU, SpecQC
   build-depends:       base
                      , HUnit
                      , QuickCheck
