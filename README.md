@@ -7,4 +7,5 @@ Note: you need to add stack's installation directory to your system path (defaul
 
 To generate docs:
 haddoc -h -o output_dir Lexer.hs parser.hs 
+Though it is no loonger needed, as it suffices to type 'stack test' command
 
