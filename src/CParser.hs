@@ -1,4 +1,4 @@
-module CParser(parseProgram) where
+module CParser(parseProgram, parseString) where
 import System.IO
 import Control.Monad
 import Text.ParserCombinators.Parsec
@@ -374,3 +374,5 @@ parseProgram file =
      case parse parser "CParser" program of
        Left e  -> print e >> return (Program [])-- >> fail "Parse error"
        Right r -> return r 
+
+parseString programContent = parse parser "Cparser" programContent

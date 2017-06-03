@@ -1,3 +1,16 @@
+int main (void i){
+    {
+        !i;
+        bool a = false;
+    }
+}
+string e(){
+    print false;
+}
+
+main( i );
+y = lambda x: 
+1+2;
 if(true){
     if( false){
 
