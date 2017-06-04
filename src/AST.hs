@@ -1,54 +1,69 @@
+{-|
+Module      : AST
+Description : This module includes definitions of data structures and implementations of theirs Eq and Show instances. Each value constructor has Int field that represents level of indentation. It is used during printing AST tree.
+Maintainer  : Robert Bielas, Michal Cwiertnia
+-}
 module AST (Argument(..), Expr(..), Type(..), FunDef(..), Stmt(..), Block(..), Program(..), LambdaArg(..)) where
 
-data LambdaArg = LambdaArg String deriving (Show, Eq)
+-- | Data structure for Program. It helps in printing pretty AST.
+data Program = Program [Block] -- ^ Arguments: List of blocks that forms program.
 
--- | Data struvture for function's arguments
-data Argument = Argument Int Type String 
 
--- | Data structure for expressions
-data Expr = Condition Int Expr Expr Expr |    -- ^ This expression looks like: 
-            BoolConst Int Bool |             -- ^ Expression representing Boolean constant. Arguments: boolean value.
-            StringConst Int String |         -- ^ Expression representing String constant. Arguments: string value.
-            IntConst Int Integer |           -- ^ Expression representing Integer constant. Arguments: integer value.
-            FloatConst Int Double |          -- ^ Expression representing Double constatnt. Arguments: double value. 
-            UnaryOp Int String Expr |        -- ^ Expression representing unary operation. Arguments: operator, expression.
-            BinaryOp Int String Expr Expr |  -- ^ Expression representing binary operation. Arguments: operator, left expression, right expression. 
-            FunCall Int String [Expr] |      -- ^ Expression representing function call. Arguments: function's name, list of expression that will be passed as arguments.
-            Variable Int String |
-            PythonLambda Int [LambdaArg] Expr |
-            HaskellLambda Int [LambdaArg] Expr 
+-- | Data structure for Block. Block is a part of program. Block can be a function definition or a statement.
+data Block = FunDefBlock Int FunDef |  -- ^ Block consisting of function definition. Arguments: function definition.
+             StmtBlock Int Stmt        -- ^ Block consisting of statement. Argumetns: statement.
+
+
+
+-- | Data structure for function definition. Function definition can be a part of block.
+data FunDef = FunDef Int Type String [Argument] Stmt        -- ^ Arguments for this constructor: function's type, function's name, list of arguments,
+                                                            -- function's body . 
+
+-- | Data structure for statements. Statement can be part of a block or a function definition
+data Stmt = Seq Int [Stmt] |                          -- ^ Sequence of statements. Arguments: a list of statements.
+            Assign Int String Expr |                  -- ^ Assignment statement. Arguments: variable's name, expression, which result will be a value of variable.
+            If Int Expr Stmt Stmt |                   -- ^ If-else statement. Arguments: condition, if body, else body.
+            While Int Expr Stmt |                     -- ^ While statement. Arguments: condition, body.
+            Return Int Expr |                         -- ^ Return statement. Arguments: expression which result will be returned.
+            Decl Int [(Type, String, Maybe Expr)] |   -- ^ Declaration statement. Arguments: list of tuples which represents declarations. Single declaration 
+                                                      -- have two forms:
+                                                      -- 1) type, variable's name and expression, which result is wrapped into Just,
+                                                      -- 2) type, variable's name and Nothing. 
+            SNop |                                    -- ^ Empty statement.
+            Print Int Expr |                          -- ^ Print statement. Arguments: expression, which result will be printed.
+            Break Int |                               -- ^ Break statement. 
+            Continue Int |                            -- ^ Continue statement.
+            SExpr Int Expr                            -- ^ Single expression statement. Arguments: expression.
+
+
+-- | Data structure for lambda's arguments. 
+data LambdaArg = LambdaArg String -- ^ Arguments for this constructor: argument's name.
+               deriving (Show, Eq) 
+
+-- | Data structure for function's arguments.
+data Argument = Argument Int Type String  -- ^ Arguments for this constructor: argument's type, argument's name
+
+-- | Data structure for expressions. Expressions can be a part of statements.
+data Expr = Condition Int Expr Expr Expr |      -- ^ Condition expression. Arguments: condition, expression that result will be returned if condtion was satisfied,
+                                                -- expression that result will be returned if condtion wasn't satisfied
+            BoolConst Int Bool |                -- ^ Boolean constant. Arguments: boolean value.
+            StringConst Int String |            -- ^ String constant. Arguments: string value.
+            IntConst Int Integer |              -- ^ Integer constant. Arguments: integer value.
+            FloatConst Int Double |             -- ^ Double constatnt. Arguments: double value. 
+            UnaryOp Int String Expr |           -- ^ Unary operation. Arguments: operator, expression.
+            BinaryOp Int String Expr Expr |     -- ^ Binary operation. Arguments: operator, left expression, right expression. 
+            FunCall Int String [Expr] |         -- ^ Function call. Arguments: function's name, list of expressions which results will be arguments of function call.
+            Variable Int String |               -- ^ Variable. Arguments: variable's name.
+            PythonLambda Int [LambdaArg] Expr | -- ^ Lambda in python style. Arguments: list of lambda's arguments, lambda's body.
+            HaskellLambda Int [LambdaArg] Expr  -- ^ Lambda in haskell style. Arguments: list of lambda's arguments, lambda's body.
 
 -- | Data structure for types
 data Type = TInt Int |    -- ^ int type
             TFloat Int |  -- ^ float type
             TBool Int |   -- ^ bool type
             TString Int | -- ^ string type
-            TVoid Int   -- ^ void type
+            TVoid Int     -- ^ void type
 
--- | Data structure for function definition 
-data FunDef = FunDef Int Type String [Argument] Stmt            -- ^ Arguments for this constructor: function's type, function's name, list of arguments,
-                                                            -- function's body   
-
-
--- | Data structure for statements
-data Stmt = Seq Int [Stmt] |                          -- ^ Sequence of statements
-            Assign Int String Expr |                  -- ^ Assignment statement
-            If Int Expr Stmt Stmt |                  -- ^ If statement. Arguments: 
-            While Int Expr Stmt |                     -- ^ While statement. Arguments: 
-            Return Int Expr |                         -- ^ Return statement. Arguments: expression which result will be returned
-            Decl Int [(Type, String, Maybe Expr)] |   -- ^ Declaration statement. Arguments: list of tuples which represents declarations. Single declaration 
-                                                -- includes: type, identifier, expression or nothing
-            SNop |                                -- ^ SNop represents empty statement
-            Print Int Expr |
-            Break Int |
-            Continue Int |
-            SExpr Int Expr
-
-data Block = FunDefBlock Int FunDef | 
-             StmtBlock Int Stmt
-
-
-data Program = Program [Block] 
 
 -------------------------SHOW HELPER FUNS--------------------------------------------------
 

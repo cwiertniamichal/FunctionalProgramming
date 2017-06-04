@@ -1,16 +1,15 @@
 {-|
 Module      : Lexer
 Description : Lexer module for C like language
-Maintainer  : Michal Cwiertnia
-
+Maintainer  : Robert Bielas, Michal Cwiertnia
 -}
-module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, integer, semi, whiteSpace, naturalOrFloat, stringLiteral) where
+module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, semi, whiteSpace, naturalOrFloat, stringLiteral) where
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec
 
--- | Language's tokens 
+-- | This creates the language definition. We used here Parsec's emptyDef constructor.  
 languageDef = 
     emptyDef { 
                -- comments
@@ -46,34 +45,33 @@ languageDef =
                 Token.caseSensitive = True
               }         
 
--- | Lexer
+-- | Lexer that is based on language definition we defined earlier. It contains number of lexical parsers, that we can use to parse identifiers,
+-- reserved words/operators, etc.
 lexer = Token.makeTokenParser languageDef
 
--- | Identifier
+-- | Lexical parser used to parse identifiers
 identifier = Token.identifier lexer
 
--- | Reserved names
-reserved   = Token.reserved   lexer
+-- | Lexical parser used to parse reserved words
+reserved = Token.reserved lexer
 
--- | Reserved operators
+-- | Lexical parser used to parse reserved operators
 reservedOp = Token.reservedOp lexer
 
--- | Parenthesis - ()
-parens     = Token.parens     lexer
+-- | Lexical parser used to parse surrounding parenthesis
+parens = Token.parens lexer
 
--- | Braces - {}
+-- | Lexical parser used to parse surrounding braces
 braces = Token.braces lexer
 
--- | Integers
-integer    = Token.integer    lexer
-
--- | Integers or Doubles
+-- | Lexical parser used to parse integers and floats
 naturalOrFloat = Token.naturalOrFloat lexer
 
--- | Semicolon
-semi       = Token.semi       lexer
+-- | Lexical parser used to parse semicolons
+semi = Token.semi lexer
 
--- | WhiteSpace
+-- | Lexical parser used to parse whitespaces
 whiteSpace = Token.whiteSpace lexer
 
+-- | Lexical parser used to parse string literals
 stringLiteral = Token.stringLiteral lexer
