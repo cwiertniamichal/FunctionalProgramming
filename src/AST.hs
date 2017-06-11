@@ -28,7 +28,7 @@ data Stmt = Seq Int [Stmt] |                          -- ^ Sequence of statement
             Decl Int [(Type, String, Maybe Expr)] |   -- ^ Declaration statement. Arguments: list of tuples which represents declarations. Single declaration 
                                                       -- have two forms:
                                                       -- 1) type, variable's name and expression, which result is wrapped into Just,
-                                                      -- 2) type, variable's name and Nothing. 
+                                                      -- 2) type, variable's name and Nothing, which means that we didn't initialized variable.
             SNop |                                    -- ^ Empty statement.
             Print Int Expr |                          -- ^ Print statement. Arguments: expression, which result will be printed.
             Break Int |                               -- ^ Break statement. 
@@ -41,7 +41,7 @@ data LambdaArg = LambdaArg String -- ^ Arguments for this constructor: argument'
                deriving (Show, Eq) 
 
 -- | Data structure for function's arguments.
-data Argument = Argument Int Type String  -- ^ Arguments for this constructor: argument's type, argument's name
+data Argument = Argument Int Type String  -- ^ Arguments for this constructor: argument's type and argument's name.
 
 -- | Data structure for expressions. Expressions can be a part of statements.
 data Expr = Condition Int Expr Expr Expr |      -- ^ Condition expression. Arguments: condition, expression that result will be returned if condtion was satisfied,
@@ -67,6 +67,8 @@ data Type = TInt Int |    -- ^ int type
 
 -------------------------SHOW HELPER FUNS--------------------------------------------------
 
+-- | This is funtion that helps in pretty printing AST. It helps to deal with nested expressions.
+changeIndent :: Expr -> Expr
 changeIndent expr = case expr of
   BoolConst indent val -> BoolConst (indent + 1)  val
   IntConst indent val -> IntConst (indent + 1) val
@@ -80,7 +82,8 @@ changeIndent expr = case expr of
   Variable indent name -> Variable (indent + 1) name
   Condition indent e1 e2 e3 -> Condition (indent + 1) (changeIndent e1) (changeIndent e2) (changeIndent e3)
 
-
+-- | This is function for printing lambda args in AST.
+printLambdaArgs :: Show a => Int -> [a] -> [Char]
 printLambdaArgs _ [] = ""
 printLambdaArgs indent (a:as) = 
   replicate indent '|' ++ show a ++ "\n" ++ printLambdaArgs indent as

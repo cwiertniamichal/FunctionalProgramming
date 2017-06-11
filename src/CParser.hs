@@ -23,8 +23,8 @@ will be Left with the error, otherwise it will be Right with the result.
 - path to a file with program's source code.
 
 == /Return:/
-If there was an error during parsing program, the return value  error,
- otherwise it will be Right with the result.
+If there was an error during parsing program, the return value will be error,
+otherwise it will be Right with the result.
 -} 
 parseProgram :: String -> IO Program
 parseProgram file =
@@ -35,8 +35,16 @@ parseProgram file =
 
 {-|
 == /Description:/
-This function allows pass program as string.   
+This function allows pass program as string. It behaves similarly to parseProgram function.
+
+== /Arguments:/
+- program's source code
+
+== /Return:/
+If there was an error during parsing program, the return value will be error,
+otherwise it will be Right with the result.  
 -}
+parseString :: String -> Either ParseError Program
 parseString programContent = parse parser "Cparser" programContent
 
       
@@ -46,7 +54,7 @@ This function parses program. We define program as something that consists of ma
 This function also gets rid of preceding spaces.   
 
 == /Return:/
-
+Parsed Program or error.
 -}
 parser :: Parser Program
 -- we have to deal with spaces before program's source code
@@ -62,6 +70,9 @@ This function parses single block. We define block to be a function definition o
 
 == /Arguments:/
 - intdent - level of indentation, used during printing AST 
+
+== /Return:/
+Parsed Block or error.
 -}
 parseBlock :: Int -> Parser Block
 parseBlock indent = do
@@ -82,6 +93,9 @@ function's name, arguments and function's body.
 
 == /Arguments:/
 - intdent - level of indentation, used during printing AST 
+
+== /Return:/
+Parsed function definition or error.
 -}
 parseFun :: Int -> Parser FunDef
 parseFun indent = do 
@@ -101,7 +115,10 @@ parseFun indent = do
 This function parses type. Type is one of the following: int, float, bool, string, void.
 
 == /Arguments:/
-- intdent - level of indentation, used during printing AST    
+- intdent - level of indentation, used during printing AST
+
+== /Reutrn:/
+Parsed type or error.    
 -}
 parseType :: Int -> Parser Type
 parseType indent = do 
@@ -126,6 +143,9 @@ This function parses functions's arguments. Single argument consists of type and
 
 == /Arguments:/
 - intdent - level of indentation, used during printing AST 
+
+== /Return:/
+Parsed list of arguments or error.
 -}
 parseFunArgs :: Int -> Parser [Argument]
 parseFunArgs indent = do
@@ -146,6 +166,7 @@ This function parses sequence of statements.
 == /Return:/
 If function successfully parsed some statement it returns Seq with list of statements. Otherwise it returns SNop. 
 -}
+parseSequenceOfStmt :: Int -> Parser Stmt
 parseSequenceOfStmt indent = braces $ do
   list <- (many $ parseStatement indent)
   return $ if length list == 0 then SNop else Seq indent list
@@ -159,6 +180,9 @@ statement.
 
 == /Arguments:/
 - intdent - level of indentation, used during printing AST  
+
+== /Return:/
+Parsed statement or error.
 -}
 parseStatement :: Int -> Parser Stmt
 parseStatement indent = parseBreakStmt indent
@@ -180,6 +204,9 @@ This function parses break statement. Break statement consists of "break" keywor
 
 == /Arguments:/
 - intdent - level of indentation, used during printing AST  
+
+== /Return:/
+parsed break statement or error
 -}
 parseBreakStmt :: Int ->  Parser Stmt
 parseBreakStmt indent = do
@@ -388,7 +415,11 @@ parseExpr indent = do
         ex <- buildExpressionParser (exprOps indent) (exprTerms indent) <?> "expression"
         try (parseCondition ex indent) <|> return ex
 
+{-|
+== /Description:/
+This function parses lambda arguments. Arguments are separated with comma. Single argument is just identifier. 
 
+-}
 parseLambdaArgs :: Parser [LambdaArg]
 parseLambdaArgs = do 
   sepBy (
@@ -401,12 +432,15 @@ parseLambdaArgs = do
 
 {-|
 == /Description:/
-This function parses condition expression. Condition expression consists of "?" operator, expression, "-:" operator and another expression.
+This function parses condition expression. Condition expression consists of condition which is just expression, "?" operator, 
+expression, which result will be returned if condition is satisfied, ":" operator and another expression, which result will be
+returned if condition is not satisfied.
 
 == /Arguments:/
 - ex - it is an expression that was already parsed. We are using it here to check if it's a part of condition expression.
 - intdent - level of indentation, used during printing AST   
 -}
+parseCondition :: Expr -> Int -> Parser Expr
 parseCondition ex indent = do
   reservedOp "?"
   a <- (parseExpr indent)
@@ -421,6 +455,7 @@ List with operator precedence, associativity and what constructors to use in eac
 to specify which one should be parsed and what is the associated data constructor. Infix operators are defined similarly, but it's 
 necessary to add information about associativity. Operator precedence depends only on the order of the elements in the list.
 -}
+exprOps :: Int -> [[Operator Char st Expr]]
 exprOps indent = [
   [Prefix (reservedOp "-" >> return (UnaryOp indent "-"))],
 
@@ -448,8 +483,9 @@ exprOps indent = [
 
 {-|
 == /Description:/
- 
+Set of rules how to parse atomic term. We use it to build expression parser. 
 -}
+exprTerms :: Int -> Parser Expr
 exprTerms indent = parens (parseExpr indent)
   <|> (do
     try (do 
@@ -463,7 +499,7 @@ exprTerms indent = parens (parseExpr indent)
         return $ StringConst indent value
     )
   <|> (do
-        x <- naturalOrFloat
+        x <- naturalOrDouble
         case x of
           Left v -> return $ IntConst indent v
           Right v -> return $ FloatConst indent v

@@ -3,7 +3,7 @@ Module      : Lexer
 Description : Lexer module for C like language
 Maintainer  : Robert Bielas, Michal Cwiertnia
 -}
-module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, semi, whiteSpace, naturalOrFloat, stringLiteral) where
+module Lexer (languageDef, lexer, identifier, reserved, reservedOp, parens, braces, semi, whiteSpace, naturalOrDouble, stringLiteral) where
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
@@ -64,8 +64,8 @@ parens = Token.parens lexer
 -- | Lexical parser used to parse surrounding braces
 braces = Token.braces lexer
 
--- | Lexical parser used to parse integers and floats
-naturalOrFloat = Token.naturalOrFloat lexer
+-- | Lexical parser used to parse integers and doubles
+naturalOrDouble = Token.naturalOrFloat lexer
 
 -- | Lexical parser used to parse semicolons
 semi = Token.semi lexer
